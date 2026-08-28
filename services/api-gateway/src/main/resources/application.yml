@@ -1,0 +1,38 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: payment-service
+              uri: ${PAYMENT_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/payments/**
+              filters:
+                - StripPrefix=2
+            - id: account-service
+              uri: ${ACCOUNT_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/accounts/**
+              filters:
+                - StripPrefix=2
+            - id: customer-service
+              uri: ${CUSTOMER_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/customers/**
+              filters:
+                - StripPrefix=2
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,gateway
+  endpoint:
+    health:
+      show-details: always
