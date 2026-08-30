@@ -14,19 +14,19 @@ spring:
               predicates:
                 - Path=/api/payments/**
               filters:
-                - StripPrefix=2
+                - StripPrefix=1
             - id: account-service
               uri: ${ACCOUNT_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/api/accounts/**
               filters:
-                - StripPrefix=2
+                - StripPrefix=1
             - id: customer-service
               uri: ${CUSTOMER_SERVICE_URL:http://localhost:8083}
               predicates:
                 - Path=/api/customers/**
               filters:
-                - StripPrefix=2
+                - StripPrefix=1
 
 management:
   endpoints:
