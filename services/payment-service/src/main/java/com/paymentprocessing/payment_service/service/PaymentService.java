@@ -35,6 +35,7 @@ public class PaymentService {
     private final CustomerClient customerClient;
     private final AccountClient accountClient;
     private final IdempotencyService idempotencyService;
+    private final OutboxService outboxService;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -54,6 +55,7 @@ public class PaymentService {
 
         Payment payment = createPayment(request);
         recordEvent(payment, "CREATED", null, payment.getStatus());
+        outboxService.recordCreated(payment);
 
         String body = writeJson(PaymentResponse.from(payment));
         int status = HttpStatus.CREATED.value();
@@ -83,6 +85,7 @@ public class PaymentService {
         stateMachine.transition(payment, to);
         Payment saved = paymentRepository.save(payment);
         recordEvent(saved, "TRANSITIONED", from, to);
+        outboxService.recordTransitioned(saved, from, to);
         return saved;
     }
 
