@@ -3,7 +3,6 @@ package com.paymentprocessing.payment_service.domain;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -33,8 +32,7 @@ public class IdempotencyKey {
     @Column(nullable = false)
     private int responseStatus;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String responseBody;
 
     @Column(nullable = false, updatable = false)
