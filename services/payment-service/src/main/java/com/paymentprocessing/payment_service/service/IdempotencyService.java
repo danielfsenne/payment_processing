@@ -2,7 +2,7 @@ package com.paymentprocessing.payment_service.service;
 
 import com.paymentprocessing.payment_service.domain.IdempotencyKey;
 import com.paymentprocessing.payment_service.repository.IdempotencyKeyRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;

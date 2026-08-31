@@ -13,7 +13,7 @@ import com.paymentprocessing.payment_service.web.IdempotencyConflictException;
 import com.paymentprocessing.payment_service.web.ResourceNotFoundException;
 import com.paymentprocessing.payment_service.web.dto.CreatePaymentRequest;
 import com.paymentprocessing.payment_service.web.dto.PaymentResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
