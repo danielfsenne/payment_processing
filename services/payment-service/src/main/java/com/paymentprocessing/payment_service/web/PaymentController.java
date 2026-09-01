@@ -62,7 +62,7 @@ public class PaymentController {
             @PathVariable UUID id,
             @RequestBody(required = false) ProcessPaymentRequest request) {
         ProcessPaymentRequest effective = request != null ? request : ProcessPaymentRequest.defaultRequest();
-        Payment payment = sagaOrchestrator.process(id, effective.simulateProcessingFailure());
+        Payment payment = sagaOrchestrator.process(id, effective.shouldSimulateFailure());
         return PaymentResponse.from(payment);
     }
 }

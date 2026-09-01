@@ -5,9 +5,13 @@ package com.paymentprocessing.payment_service.web.dto;
  * (release the balance reservation, mark the payment FAILED) reproducible in tests
  * without wiring up a real payment processor integration.
  */
-public record ProcessPaymentRequest(boolean simulateProcessingFailure) {
+public record ProcessPaymentRequest(Boolean simulateProcessingFailure) {
 
     public static ProcessPaymentRequest defaultRequest() {
         return new ProcessPaymentRequest(false);
+    }
+
+    public boolean shouldSimulateFailure() {
+        return Boolean.TRUE.equals(simulateProcessingFailure);
     }
 }
