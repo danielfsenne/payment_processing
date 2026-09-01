@@ -10,6 +10,8 @@ public record AccountResponse(
         UUID id,
         UUID customerId,
         BigDecimal balance,
+        BigDecimal reservedAmount,
+        BigDecimal availableBalance,
         String currency,
         Instant createdAt) {
 
@@ -18,6 +20,8 @@ public record AccountResponse(
                 account.getId(),
                 account.getCustomerId(),
                 account.getBalance(),
+                account.getReservedAmount(),
+                account.getAvailableBalance(),
                 account.getCurrency(),
                 account.getCreatedAt());
     }

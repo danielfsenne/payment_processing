@@ -33,6 +33,9 @@ public class Account {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balance;
 
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal reservedAmount;
+
     @Column(nullable = false, length = 3)
     private String currency;
 
@@ -47,6 +50,13 @@ public class Account {
         if (balance == null) {
             balance = BigDecimal.ZERO;
         }
+        if (reservedAmount == null) {
+            reservedAmount = BigDecimal.ZERO;
+        }
         createdAt = Instant.now();
+    }
+
+    public BigDecimal getAvailableBalance() {
+        return balance.subtract(reservedAmount);
     }
 }
