@@ -2,10 +2,12 @@ package com.paymentprocessing.payment_service.web;
 
 import com.paymentprocessing.payment_service.domain.Payment;
 import com.paymentprocessing.payment_service.service.PaymentCreationResult;
+import com.paymentprocessing.payment_service.service.PaymentSagaOrchestrator;
 import com.paymentprocessing.payment_service.service.PaymentService;
 import com.paymentprocessing.payment_service.web.dto.CreatePaymentRequest;
 import com.paymentprocessing.payment_service.web.dto.PaymentEventResponse;
 import com.paymentprocessing.payment_service.web.dto.PaymentResponse;
+import com.paymentprocessing.payment_service.web.dto.ProcessPaymentRequest;
 import com.paymentprocessing.payment_service.web.dto.TransitionRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.UUID;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final PaymentSagaOrchestrator sagaOrchestrator;
 
     @PostMapping
     public ResponseEntity<String> create(
@@ -52,5 +55,14 @@ public class PaymentController {
     @GetMapping("/{id}/events")
     public List<PaymentEventResponse> getEvents(@PathVariable UUID id) {
         return paymentService.getEvents(id).stream().map(PaymentEventResponse::from).toList();
+    }
+
+    @PostMapping("/{id}/process")
+    public PaymentResponse process(
+            @PathVariable UUID id,
+            @RequestBody(required = false) ProcessPaymentRequest request) {
+        ProcessPaymentRequest effective = request != null ? request : ProcessPaymentRequest.defaultRequest();
+        Payment payment = sagaOrchestrator.process(id, effective.simulateProcessingFailure());
+        return PaymentResponse.from(payment);
     }
 }

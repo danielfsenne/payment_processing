@@ -95,6 +95,25 @@ public class PaymentService {
         return paymentEventRepository.findByPaymentIdOrderByCreatedAtAsc(paymentId);
     }
 
+    @Transactional
+    public Payment attachReservation(UUID id, UUID reservationId) {
+        Payment payment = getById(id);
+        payment.setReservationId(reservationId);
+        return paymentRepository.save(payment);
+    }
+
+    @Transactional
+    public Payment markFailed(UUID id, String reason) {
+        Payment payment = getById(id);
+        PaymentStatus from = payment.getStatus();
+        stateMachine.transition(payment, PaymentStatus.FAILED);
+        payment.setFailureReason(reason);
+        Payment saved = paymentRepository.save(payment);
+        recordEvent(saved, "TRANSITIONED", from, PaymentStatus.FAILED);
+        outboxService.recordTransitioned(saved, from, PaymentStatus.FAILED);
+        return saved;
+    }
+
     private Payment createPayment(CreatePaymentRequest request) {
         requireCustomerExists(request.customerId());
         requireAccountExists(request.accountId());

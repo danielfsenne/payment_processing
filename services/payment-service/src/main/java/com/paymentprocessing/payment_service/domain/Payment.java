@@ -46,6 +46,10 @@ public class Payment {
     @Column(nullable = false, length = 20)
     private PaymentStatus status;
 
+    private UUID reservationId;
+
+    private String failureReason;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 

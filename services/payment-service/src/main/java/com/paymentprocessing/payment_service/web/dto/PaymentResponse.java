@@ -14,6 +14,8 @@ public record PaymentResponse(
         BigDecimal amount,
         String currency,
         PaymentStatus status,
+        UUID reservationId,
+        String failureReason,
         Instant createdAt,
         Instant updatedAt) {
 
@@ -25,6 +27,8 @@ public record PaymentResponse(
                 payment.getAmount(),
                 payment.getCurrency(),
                 payment.getStatus(),
+                payment.getReservationId(),
+                payment.getFailureReason(),
                 payment.getCreatedAt(),
                 payment.getUpdatedAt());
     }
