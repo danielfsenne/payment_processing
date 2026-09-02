@@ -40,7 +40,7 @@ public class ReservationService {
             return existing.get();
         }
 
-        Account account = accountRepository.findById(accountId)
+        Account account = accountRepository.findByIdForUpdate(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found: " + accountId));
 
         if (amount.compareTo(account.getAvailableBalance()) > 0) {
@@ -69,7 +69,7 @@ public class ReservationService {
             throw new InvalidReservationStateException(reservationId, reservation.getStatus(), "confirm");
         }
 
-        Account account = accountRepository.findById(reservation.getAccountId())
+        Account account = accountRepository.findByIdForUpdate(reservation.getAccountId())
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found: " + reservation.getAccountId()));
         account.setBalance(account.getBalance().subtract(reservation.getAmount()));
         account.setReservedAmount(account.getReservedAmount().subtract(reservation.getAmount()));
@@ -89,7 +89,7 @@ public class ReservationService {
             throw new InvalidReservationStateException(reservationId, reservation.getStatus(), "release");
         }
 
-        Account account = accountRepository.findById(reservation.getAccountId())
+        Account account = accountRepository.findByIdForUpdate(reservation.getAccountId())
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found: " + reservation.getAccountId()));
         account.setReservedAmount(account.getReservedAmount().subtract(reservation.getAmount()));
         accountRepository.save(account);
