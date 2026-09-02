@@ -5,11 +5,14 @@ import com.paymentprocessing.payment_service.client.ReservationClient;
 import com.paymentprocessing.payment_service.client.ReservationDto;
 import com.paymentprocessing.payment_service.domain.Payment;
 import com.paymentprocessing.payment_service.domain.PaymentStatus;
+import com.paymentprocessing.payment_service.web.ConcurrentOperationException;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -30,10 +33,30 @@ import java.util.UUID;
 @Slf4j
 public class PaymentSagaOrchestrator {
 
+    private static final String SAGA_LOCK_PREFIX = "payment-saga:";
+    private static final Duration SAGA_LOCK_TTL = Duration.ofSeconds(30);
+
     private final PaymentService paymentService;
     private final ReservationClient reservationClient;
+    private final DistributedLockService lockService;
 
     public Payment process(UUID paymentId, boolean simulateProcessingFailure) {
+        // Two concurrent /process calls for the same payment can both read CREATED
+        // before either transitions it: the lock serializes the whole saga per payment
+        // so the second call waits instead of double-reserving/double-capturing.
+        Optional<String> token = lockService.tryLock(SAGA_LOCK_PREFIX + paymentId, SAGA_LOCK_TTL);
+        if (token.isEmpty()) {
+            throw new ConcurrentOperationException(
+                    "Payment %s is already being processed by a concurrent request".formatted(paymentId));
+        }
+        try {
+            return doProcess(paymentId, simulateProcessingFailure);
+        } finally {
+            lockService.unlock(SAGA_LOCK_PREFIX + paymentId, token.get());
+        }
+    }
+
+    private Payment doProcess(UUID paymentId, boolean simulateProcessingFailure) {
         Payment payment = paymentService.getById(paymentId);
         if (payment.getStatus() != PaymentStatus.CREATED) {
             throw new IllegalStateException(
