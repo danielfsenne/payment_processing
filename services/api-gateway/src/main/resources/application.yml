@@ -27,6 +27,12 @@ spring:
                 - Path=/api/customers/**
               filters:
                 - StripPrefix=1
+            - id: customer-service-auth
+              uri: ${CUSTOMER_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/auth/**
+              filters:
+                - StripPrefix=1
 
 management:
   endpoints:
