@@ -130,6 +130,7 @@ services:
     build: ./services/notification-worker
     environment:
       RABBITMQ_HOST: rabbitmq
+      JWT_SECRET: ${JWT_SECRET:-dev-only-shared-secret-change-me-in-prod-32bytes}
     ports:
       - "8085:8085"
     depends_on:
