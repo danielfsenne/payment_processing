@@ -68,6 +68,9 @@ services:
     environment:
       DB_HOST: postgres
       DB_NAME: customer_db
+      JWT_SECRET: ${JWT_SECRET:-dev-only-shared-secret-change-me-in-prod-32bytes}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@payment-processing.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin12345}
     ports:
       - "8083:8083"
     depends_on:
@@ -80,6 +83,7 @@ services:
       DB_HOST: postgres
       DB_NAME: account_db
       RABBITMQ_HOST: rabbitmq
+      JWT_SECRET: ${JWT_SECRET:-dev-only-shared-secret-change-me-in-prod-32bytes}
     ports:
       - "8082:8082"
     depends_on:
@@ -97,6 +101,7 @@ services:
       REDIS_HOST: redis
       ACCOUNT_SERVICE_URL: http://account-service:8082
       CUSTOMER_SERVICE_URL: http://customer-service:8083
+      JWT_SECRET: ${JWT_SECRET:-dev-only-shared-secret-change-me-in-prod-32bytes}
     ports:
       - "8091:8081"
     depends_on:

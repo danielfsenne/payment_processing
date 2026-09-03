@@ -106,6 +106,11 @@ public class PaymentService {
         return paymentRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
+    public List<Payment> listForCustomer(UUID customerId) {
+        return paymentRepository.findByCustomerId(customerId);
+    }
+
     @Transactional
     public Payment transition(UUID id, PaymentStatus to) {
         Payment payment = getById(id);

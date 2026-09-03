@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
  * as an exclusive lock under real concurrency.
  */
 @Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest
 class PaymentServiceIdempotencyConcurrencyTest {
 
     @Container

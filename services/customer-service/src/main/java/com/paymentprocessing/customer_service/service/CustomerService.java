@@ -2,9 +2,11 @@ package com.paymentprocessing.customer_service.service;
 
 import com.paymentprocessing.customer_service.domain.Customer;
 import com.paymentprocessing.customer_service.repository.CustomerRepository;
+import com.paymentprocessing.customer_service.web.InvalidCredentialsException;
 import com.paymentprocessing.customer_service.web.ResourceNotFoundException;
 import com.paymentprocessing.customer_service.web.dto.CreateCustomerRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,7 @@ import java.util.UUID;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public Customer create(CreateCustomerRequest request) {
@@ -23,6 +26,7 @@ public class CustomerService {
                 .name(request.name())
                 .email(request.email())
                 .document(request.document())
+                .passwordHash(passwordEncoder.encode(request.password()))
                 .build();
         return customerRepository.save(customer);
     }
@@ -36,5 +40,15 @@ public class CustomerService {
     @Transactional(readOnly = true)
     public List<Customer> list() {
         return customerRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Customer authenticate(String email, String rawPassword) {
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(InvalidCredentialsException::new);
+        if (!passwordEncoder.matches(rawPassword, customer.getPasswordHash())) {
+            throw new InvalidCredentialsException();
+        }
+        return customer;
     }
 }

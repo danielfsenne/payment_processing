@@ -38,4 +38,9 @@ public class AccountService {
     public List<Account> list() {
         return accountRepository.findAll();
     }
+
+    @Transactional(readOnly = true)
+    public List<Account> listForCustomer(UUID customerId) {
+        return accountRepository.findByCustomerId(customerId);
+    }
 }

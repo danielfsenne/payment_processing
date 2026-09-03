@@ -1,6 +1,7 @@
 package com.paymentprocessing.customer_service.web.dto;
 
 import com.paymentprocessing.customer_service.domain.Customer;
+import com.paymentprocessing.customer_service.domain.CustomerRole;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -10,6 +11,7 @@ public record CustomerResponse(
         String name,
         String email,
         String document,
+        CustomerRole role,
         Instant createdAt) {
 
     public static CustomerResponse from(Customer customer) {
@@ -18,6 +20,7 @@ public record CustomerResponse(
                 customer.getName(),
                 customer.getEmail(),
                 customer.getDocument(),
+                customer.getRole(),
                 customer.getCreatedAt());
     }
 }

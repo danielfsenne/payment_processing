@@ -36,6 +36,10 @@ management:
     health:
       show-details: always
 
+security:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-shared-secret-change-me-in-prod-32bytes}
+
 account-service:
   base-url: ${ACCOUNT_SERVICE_URL:http://localhost:8082}
 

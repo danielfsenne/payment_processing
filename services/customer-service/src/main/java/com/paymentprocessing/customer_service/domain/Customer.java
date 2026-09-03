@@ -2,6 +2,8 @@ package com.paymentprocessing.customer_service.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -35,6 +37,13 @@ public class Customer {
     @Column(nullable = false, unique = true)
     private String document;
 
+    @Column(nullable = false)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private CustomerRole role;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -42,6 +51,9 @@ public class Customer {
     void onCreate() {
         if (id == null) {
             id = UUID.randomUUID();
+        }
+        if (role == null) {
+            role = CustomerRole.CUSTOMER;
         }
         createdAt = Instant.now();
     }

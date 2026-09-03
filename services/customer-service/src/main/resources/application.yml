@@ -21,3 +21,14 @@ management:
   endpoint:
     health:
       show-details: always
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-shared-secret-change-me-in-prod-32bytes}
+
+app:
+  admin:
+    name: ${ADMIN_NAME:Admin}
+    email: ${ADMIN_EMAIL:admin@payment-processing.local}
+    document: ${ADMIN_DOCUMENT:00000000000}
+    password: ${ADMIN_PASSWORD:admin12345}
