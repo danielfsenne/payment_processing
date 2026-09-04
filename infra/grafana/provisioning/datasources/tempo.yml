@@ -6,8 +6,3 @@ datasources:
     access: proxy
     url: http://tempo:3200
     isDefault: false
-    jsonData:
-      tracesToMetrics:
-        datasourceUid: prometheus
-      serviceMap:
-        datasourceUid: prometheus
