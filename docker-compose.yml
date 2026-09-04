@@ -62,6 +62,16 @@ services:
     ports:
       - "4317:4317"
       - "4318:4318"
+    depends_on:
+      - tempo
+
+  tempo:
+    image: grafana/tempo:latest
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./infra/tempo/tempo.yaml:/etc/tempo.yaml
+    ports:
+      - "3200:3200"
 
   customer-service:
     build: ./services/customer-service
@@ -71,6 +81,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-only-shared-secret-change-me-in-prod-32bytes}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@payment-processing.local}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin12345}
+      OTEL_EXPORTER_ENDPOINT: http://otel-collector:4318/v1/traces
     ports:
       - "8083:8083"
     depends_on:
@@ -84,6 +95,7 @@ services:
       DB_NAME: account_db
       RABBITMQ_HOST: rabbitmq
       JWT_SECRET: ${JWT_SECRET:-dev-only-shared-secret-change-me-in-prod-32bytes}
+      OTEL_EXPORTER_ENDPOINT: http://otel-collector:4318/v1/traces
     ports:
       - "8082:8082"
     depends_on:
@@ -102,6 +114,7 @@ services:
       ACCOUNT_SERVICE_URL: http://account-service:8082
       CUSTOMER_SERVICE_URL: http://customer-service:8083
       JWT_SECRET: ${JWT_SECRET:-dev-only-shared-secret-change-me-in-prod-32bytes}
+      OTEL_EXPORTER_ENDPOINT: http://otel-collector:4318/v1/traces
     ports:
       - "8091:8081"
     depends_on:
@@ -118,6 +131,7 @@ services:
       DB_HOST: postgres
       DB_NAME: payment_db
       RABBITMQ_HOST: rabbitmq
+      OTEL_EXPORTER_ENDPOINT: http://otel-collector:4318/v1/traces
     ports:
       - "8084:8084"
     depends_on:
@@ -131,6 +145,7 @@ services:
     environment:
       RABBITMQ_HOST: rabbitmq
       JWT_SECRET: ${JWT_SECRET:-dev-only-shared-secret-change-me-in-prod-32bytes}
+      OTEL_EXPORTER_ENDPOINT: http://otel-collector:4318/v1/traces
     ports:
       - "8085:8085"
     depends_on:
@@ -143,6 +158,7 @@ services:
       PAYMENT_SERVICE_URL: http://payment-service:8081
       ACCOUNT_SERVICE_URL: http://account-service:8082
       CUSTOMER_SERVICE_URL: http://customer-service:8083
+      OTEL_EXPORTER_ENDPOINT: http://otel-collector:4318/v1/traces
     ports:
       - "8080:8080"
     depends_on:
