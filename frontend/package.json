@@ -10,6 +10,7 @@
     "lint": "eslint . --ext .vue,.js,.ts --fix"
   },
   "dependencies": {
+    "@stomp/stompjs": "^7.3.0",
     "pinia": "^2.2.2",
     "vue": "^3.4.38",
     "vue-router": "^4.4.3"

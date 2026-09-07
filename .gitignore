@@ -9,3 +9,4 @@ node_modules/
 dist/
 *.tsbuildinfo
 .env
+frontend/vite.config.js
