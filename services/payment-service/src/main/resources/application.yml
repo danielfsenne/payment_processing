@@ -28,15 +28,22 @@ spring:
     redis:
       time-to-live: 30s
       cache-null-values: false
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus
+        include: health,info,prometheus,circuitbreakers,circuitbreakerevents
   endpoint:
     health:
       show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
   tracing:
     sampling:
       probability: 1.0
@@ -55,3 +62,17 @@ account-service:
 
 customer-service:
   base-url: ${CUSTOMER_SERVICE_URL:http://localhost:8083}
+
+resilience4j:
+  circuitbreaker:
+    # Spring Cloud OpenFeign names each circuit breaker after the Feign method it wraps
+    # (e.g. "AccountClientgetByIdUUID"), not the @FeignClient name - too fragile to pin
+    # per instance, so every Feign-backed circuit breaker inherits this one config.
+    configs:
+      default:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true

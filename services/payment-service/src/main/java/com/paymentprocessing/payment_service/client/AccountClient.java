@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.UUID;
 
-@FeignClient(name = "account-service", url = "${account-service.base-url}")
+@FeignClient(name = "account-service", url = "${account-service.base-url}", fallback = AccountClientFallback.class)
 public interface AccountClient {
 
     @GetMapping("/accounts/{id}")

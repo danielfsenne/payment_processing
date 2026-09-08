@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.UUID;
 
-@FeignClient(name = "account-service-reservations", url = "${account-service.base-url}")
+@FeignClient(name = "account-service-reservations", url = "${account-service.base-url}", fallback = ReservationClientFallback.class)
 public interface ReservationClient {
 
     @PostMapping("/accounts/{accountId}/reservations")
