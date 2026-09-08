@@ -10,7 +10,9 @@ spring:
     password: ${DB_PASSWORD:postgres}
   jpa:
     hibernate:
-      ddl-auto: update
+      # payment-worker owns no entities; payment-service (via Flyway) is the schema
+      # authority for the shared payment_db.
+      ddl-auto: none
     open-in-view: false
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
