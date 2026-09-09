@@ -31,8 +31,13 @@ onMounted(async () => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="c in customers" :key="c.id" class="border-t border-gray-100">
-              <td class="px-4 py-2">{{ c.name }}</td>
+            <tr
+              v-for="c in customers"
+              :key="c.id"
+              class="cursor-pointer border-t border-gray-100 hover:bg-gray-50"
+              @click="$router.push(`/customers/${c.id}`)"
+            >
+              <td class="px-4 py-2 text-blue-600 hover:underline">{{ c.name }}</td>
               <td class="px-4 py-2">{{ c.email }}</td>
               <td class="px-4 py-2">{{ c.document }}</td>
               <td class="px-4 py-2">

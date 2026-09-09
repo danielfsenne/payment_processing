@@ -12,6 +12,10 @@ export function listPayments() {
   return api.get<Payment[]>('/payments')
 }
 
+export function getPayment(id: string) {
+  return api.get<Payment>(`/payments/${id}`)
+}
+
 export function createPayment(request: CreatePaymentRequest, idempotencyKey: string) {
   return api.post<Payment>('/payments', request, { 'Idempotency-Key': idempotencyKey })
 }

@@ -88,8 +88,13 @@ async function handleCreate() {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="a in accounts" :key="a.id" class="border-t border-gray-100">
-              <td class="px-4 py-2 font-mono text-xs text-gray-500">{{ a.id }}</td>
+            <tr
+              v-for="a in accounts"
+              :key="a.id"
+              class="cursor-pointer border-t border-gray-100 hover:bg-gray-50"
+              @click="$router.push(`/accounts/${a.id}`)"
+            >
+              <td class="px-4 py-2 font-mono text-xs text-blue-600 hover:underline">{{ a.id }}</td>
               <td v-if="auth.isAdmin" class="px-4 py-2 font-mono text-xs text-gray-500">{{ a.customerId }}</td>
               <td class="px-4 py-2">{{ a.balance.toFixed(2) }}</td>
               <td class="px-4 py-2">{{ a.reservedAmount.toFixed(2) }}</td>

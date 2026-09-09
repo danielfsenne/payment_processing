@@ -4,8 +4,11 @@ import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import AccountsView from '@/views/AccountsView.vue'
+import AccountDetailView from '@/views/AccountDetailView.vue'
 import PaymentsView from '@/views/PaymentsView.vue'
+import PaymentDetailView from '@/views/PaymentDetailView.vue'
 import CustomersView from '@/views/CustomersView.vue'
+import CustomerDetailView from '@/views/CustomerDetailView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,8 +17,11 @@ const router = createRouter({
     { path: '/register', name: 'register', component: RegisterView, meta: { public: true } },
     { path: '/', name: 'home', component: HomeView },
     { path: '/accounts', name: 'accounts', component: AccountsView },
+    { path: '/accounts/:id', name: 'account-detail', component: AccountDetailView },
     { path: '/payments', name: 'payments', component: PaymentsView },
+    { path: '/payments/:id', name: 'payment-detail', component: PaymentDetailView },
     { path: '/customers', name: 'customers', component: CustomersView, meta: { adminOnly: true } },
+    { path: '/customers/:id', name: 'customer-detail', component: CustomerDetailView, meta: { adminOnly: true } },
   ],
 })
 

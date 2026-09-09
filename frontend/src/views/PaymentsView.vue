@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import type { Client } from '@stomp/stompjs'
-import { listPayments, createPayment, processPayment, getPaymentEvents } from '@/api/payments'
+import { listPayments, createPayment, processPayment } from '@/api/payments'
 import { listAccounts } from '@/api/accounts'
 import { connectPaymentSocket } from '@/ws/paymentSocket'
 import { useAuthStore } from '@/stores/auth'
 import { HttpError } from '@/api/client'
-import type { Account, Payment, PaymentEvent } from '@/types'
+import type { Account, Payment } from '@/types'
 import StatusBadge from '@/components/StatusBadge.vue'
 
 const auth = useAuthStore()
@@ -22,8 +22,6 @@ const amount = ref(0)
 const currency = ref('BRL')
 const submitting = ref(false)
 
-const expandedId = ref<string | null>(null)
-const events = ref<Record<string, PaymentEvent[]>>({})
 const processingId = ref<string | null>(null)
 
 let socket: Client | null = null
@@ -94,16 +92,6 @@ async function handleProcess(payment: Payment) {
   }
 }
 
-async function toggleEvents(payment: Payment) {
-  if (expandedId.value === payment.id) {
-    expandedId.value = null
-    return
-  }
-  expandedId.value = payment.id
-  if (!events.value[payment.id]) {
-    events.value[payment.id] = await getPaymentEvents(payment.id)
-  }
-}
 </script>
 
 <template>
@@ -152,35 +140,27 @@ async function toggleEvents(payment: Payment) {
       <div v-if="loading" class="text-sm text-gray-500">Carregando...</div>
       <div v-else-if="!payments.length" class="text-sm text-gray-500">Nenhum pagamento encontrado.</div>
       <div v-else class="space-y-2">
-        <div v-for="p in payments" :key="p.id" class="rounded-lg border border-gray-200 bg-white">
-          <div class="flex items-center justify-between px-4 py-3">
-            <div class="flex items-center gap-3">
-              <button class="text-left" @click="toggleEvents(p)">
-                <span class="font-medium text-gray-800">{{ p.amount.toFixed(2) }} {{ p.currency }}</span>
-                <span class="ml-2 font-mono text-xs text-gray-400">{{ p.id.slice(0, 8) }}...</span>
-              </button>
-              <StatusBadge :status="p.status" />
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-gray-400">{{ new Date(p.updatedAt).toLocaleString() }}</span>
-              <button
-                v-if="p.status === 'CREATED'"
-                :disabled="processingId === p.id"
-                class="rounded-md bg-gray-800 px-3 py-1 text-xs font-medium text-white hover:bg-gray-900 disabled:opacity-50"
-                @click="handleProcess(p)"
-              >
-                {{ processingId === p.id ? 'Processando...' : 'Processar' }}
-              </button>
-            </div>
+        <div
+          v-for="p in payments"
+          :key="p.id"
+          class="flex cursor-pointer items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 hover:bg-gray-50"
+          @click="$router.push(`/payments/${p.id}`)"
+        >
+          <div class="flex items-center gap-3">
+            <span class="font-medium text-gray-800">{{ p.amount.toFixed(2) }} {{ p.currency }}</span>
+            <span class="font-mono text-xs text-gray-400">{{ p.id.slice(0, 8) }}...</span>
+            <StatusBadge :status="p.status" />
           </div>
-          <div v-if="expandedId === p.id" class="border-t border-gray-100 bg-gray-50 px-4 py-3">
-            <p v-if="p.failureReason" class="mb-2 text-sm text-red-600">Motivo da falha: {{ p.failureReason }}</p>
-            <ul class="space-y-1 text-xs text-gray-600">
-              <li v-for="e in events[p.id]" :key="e.id">
-                {{ new Date(e.createdAt).toLocaleTimeString() }} — {{ e.eventType }}
-                <span v-if="e.fromStatus">{{ e.fromStatus }} → </span>{{ e.toStatus }}
-              </li>
-            </ul>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-400">{{ new Date(p.updatedAt).toLocaleString() }}</span>
+            <button
+              v-if="p.status === 'CREATED'"
+              :disabled="processingId === p.id"
+              class="rounded-md bg-gray-800 px-3 py-1 text-xs font-medium text-white hover:bg-gray-900 disabled:opacity-50"
+              @click.stop="handleProcess(p)"
+            >
+              {{ processingId === p.id ? 'Processando...' : 'Processar' }}
+            </button>
           </div>
         </div>
       </div>

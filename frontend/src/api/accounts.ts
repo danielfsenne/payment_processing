@@ -11,6 +11,10 @@ export function listAccounts() {
   return api.get<Account[]>('/accounts')
 }
 
+export function getAccount(id: string) {
+  return api.get<Account>(`/accounts/${id}`)
+}
+
 export function createAccount(request: CreateAccountRequest) {
   return api.post<Account>('/accounts', request)
 }
