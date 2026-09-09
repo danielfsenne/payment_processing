@@ -83,10 +83,13 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@payment-processing.local}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin12345}
       OTEL_EXPORTER_ENDPOINT: http://otel-collector:4318/v1/traces
+      REDIS_HOST: redis
     ports:
       - "8083:8083"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   account-service:
@@ -97,12 +100,15 @@ services:
       RABBITMQ_HOST: rabbitmq
       JWT_SECRET: ${JWT_SECRET:-dev-only-shared-secret-change-me-in-prod-32bytes}
       OTEL_EXPORTER_ENDPOINT: http://otel-collector:4318/v1/traces
+      REDIS_HOST: redis
     ports:
       - "8082:8082"
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   payment-service:
@@ -147,10 +153,13 @@ services:
       RABBITMQ_HOST: rabbitmq
       JWT_SECRET: ${JWT_SECRET:-dev-only-shared-secret-change-me-in-prod-32bytes}
       OTEL_EXPORTER_ENDPOINT: http://otel-collector:4318/v1/traces
+      REDIS_HOST: redis
     ports:
       - "8085:8085"
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   api-gateway:
