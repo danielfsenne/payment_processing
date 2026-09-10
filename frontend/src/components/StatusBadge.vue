@@ -4,19 +4,35 @@ import type { PaymentStatus } from '@/types'
 
 const props = defineProps<{ status: PaymentStatus }>()
 
-const colors: Record<PaymentStatus, string> = {
-  CREATED: 'bg-gray-100 text-gray-700',
-  PROCESSING: 'bg-yellow-100 text-yellow-700',
-  AUTHORIZED: 'bg-yellow-100 text-yellow-700',
-  CAPTURED: 'bg-blue-100 text-blue-700',
-  SETTLED: 'bg-green-100 text-green-700',
-  FAILED: 'bg-red-100 text-red-700',
-  RETRYING: 'bg-orange-100 text-orange-700',
+const styles: Record<PaymentStatus, { badge: string; dot: string }> = {
+  CREATED: { badge: 'bg-slate-100 text-slate-600', dot: 'bg-slate-400' },
+  PROCESSING: { badge: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500' },
+  AUTHORIZED: { badge: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500' },
+  CAPTURED: { badge: 'bg-indigo-100 text-indigo-700', dot: 'bg-indigo-500' },
+  SETTLED: { badge: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500' },
+  FAILED: { badge: 'bg-rose-100 text-rose-700', dot: 'bg-rose-500' },
+  RETRYING: { badge: 'bg-orange-100 text-orange-700', dot: 'bg-orange-500' },
 }
 
-const classes = computed(() => colors[props.status] ?? 'bg-gray-100 text-gray-700')
+const style = computed(() => styles[props.status] ?? styles.CREATED)
+
+const labels: Record<PaymentStatus, string> = {
+  CREATED: 'Criado',
+  PROCESSING: 'Processando',
+  AUTHORIZED: 'Autorizado',
+  CAPTURED: 'Capturado',
+  SETTLED: 'Liquidado',
+  FAILED: 'Falhou',
+  RETRYING: 'Retentando',
+}
 </script>
 
 <template>
-  <span class="rounded-full px-2 py-0.5 text-xs font-medium" :class="classes">{{ status }}</span>
+  <span
+    class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
+    :class="style.badge"
+  >
+    <span class="h-1.5 w-1.5 rounded-full" :class="style.dot"></span>
+    {{ labels[status] ?? status }}
+  </span>
 </template>

@@ -4,6 +4,8 @@ import { useRoute } from 'vue-router'
 import { getCustomer } from '@/api/customers'
 import { listAccounts } from '@/api/accounts'
 import type { Account, Customer } from '@/types'
+import LoadingState from '@/components/LoadingState.vue'
+import EmptyState from '@/components/EmptyState.vue'
 
 const route = useRoute()
 
@@ -26,61 +28,74 @@ onMounted(async () => {
 
 <template>
   <div>
-    <RouterLink to="/customers" class="text-sm text-blue-600 hover:underline">&larr; voltar aos clientes</RouterLink>
+    <RouterLink to="/customers" class="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-indigo-600">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+      </svg>
+      Clientes
+    </RouterLink>
 
-    <div v-if="loading" class="mt-4 text-sm text-gray-500">Carregando...</div>
-
-    <div v-else-if="!customer" class="mt-4 text-sm text-gray-500">Cliente não encontrado.</div>
+    <LoadingState v-if="loading" />
+    <EmptyState v-else-if="!customer" message="Cliente não encontrado." />
 
     <div v-else class="mt-4">
-      <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-semibold text-gray-800">{{ customer.name }}</h1>
-        <span
-          class="rounded-full px-2 py-0.5 text-xs font-medium"
-          :class="customer.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'"
-        >
-          {{ customer.role }}
-        </span>
+      <div class="rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-white shadow-lg shadow-slate-300/50 sm:p-8">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-lg font-semibold">
+            {{ customer.name.slice(0, 2).toUpperCase() }}
+          </span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-2xl font-bold">{{ customer.name }}</h1>
+              <span
+                class="rounded-full px-2.5 py-1 text-xs font-semibold"
+                :class="customer.role === 'ADMIN' ? 'bg-violet-500/20 text-violet-200' : 'bg-indigo-500/20 text-indigo-200'"
+              >
+                {{ customer.role === 'ADMIN' ? 'Admin' : 'Cliente' }}
+              </span>
+            </div>
+            <p class="mt-1 font-mono text-xs text-slate-400">{{ customer.id }}</p>
+          </div>
+        </div>
       </div>
-      <p class="mt-1 font-mono text-xs text-gray-400">{{ customer.id }}</p>
 
-      <div class="mt-6 grid grid-cols-1 gap-4 rounded-lg border border-gray-200 bg-white p-5 sm:grid-cols-3">
+      <div class="mt-6 grid grid-cols-1 gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:grid-cols-3">
         <div>
-          <p class="text-xs font-medium text-gray-500">E-mail</p>
-          <p class="text-sm text-gray-800">{{ customer.email }}</p>
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-400">E-mail</p>
+          <p class="mt-1 text-sm text-slate-800">{{ customer.email }}</p>
         </div>
         <div>
-          <p class="text-xs font-medium text-gray-500">Documento</p>
-          <p class="text-sm text-gray-800">{{ customer.document }}</p>
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Documento</p>
+          <p class="mt-1 text-sm text-slate-800">{{ customer.document }}</p>
         </div>
         <div>
-          <p class="text-xs font-medium text-gray-500">Criado em</p>
-          <p class="text-sm text-gray-800">{{ new Date(customer.createdAt).toLocaleString() }}</p>
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Criado em</p>
+          <p class="mt-1 text-sm text-slate-800">{{ new Date(customer.createdAt).toLocaleString() }}</p>
         </div>
       </div>
 
       <div class="mt-8">
-        <h2 class="mb-3 font-medium text-gray-700">Contas deste cliente</h2>
-        <div v-if="!customerAccounts.length" class="text-sm text-gray-500">Nenhuma conta encontrada.</div>
-        <div v-else class="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <h2 class="mb-3 text-sm font-semibold text-slate-700">Contas deste cliente</h2>
+        <EmptyState v-if="!customerAccounts.length" message="Nenhuma conta encontrada." />
+        <div v-else class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-left text-gray-500">
+            <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
               <tr>
-                <th class="px-4 py-2 font-medium">Saldo</th>
-                <th class="px-4 py-2 font-medium">Disponível</th>
-                <th class="px-4 py-2 font-medium">Moeda</th>
+                <th class="px-4 py-3">Saldo</th>
+                <th class="px-4 py-3">Disponível</th>
+                <th class="px-4 py-3">Moeda</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-slate-100">
               <tr
                 v-for="a in customerAccounts"
                 :key="a.id"
-                class="cursor-pointer border-t border-gray-100 hover:bg-gray-50"
+                class="cursor-pointer transition hover:bg-slate-50"
                 @click="$router.push(`/accounts/${a.id}`)"
               >
-                <td class="px-4 py-2">{{ a.balance.toFixed(2) }}</td>
-                <td class="px-4 py-2 font-medium">{{ a.availableBalance.toFixed(2) }}</td>
-                <td class="px-4 py-2">{{ a.currency }}</td>
+                <td class="px-4 py-3 text-slate-600">{{ a.balance.toFixed(2) }}</td>
+                <td class="px-4 py-3 font-semibold text-slate-900">{{ a.availableBalance.toFixed(2) }}</td>
+                <td class="px-4 py-3 text-slate-500">{{ a.currency }}</td>
               </tr>
             </tbody>
           </table>

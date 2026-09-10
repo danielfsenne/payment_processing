@@ -6,6 +6,8 @@ import { listPayments } from '@/api/payments'
 import { useAuthStore } from '@/stores/auth'
 import type { Account, Payment } from '@/types'
 import StatusBadge from '@/components/StatusBadge.vue'
+import LoadingState from '@/components/LoadingState.vue'
+import EmptyState from '@/components/EmptyState.vue'
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -29,59 +31,66 @@ onMounted(async () => {
 
 <template>
   <div>
-    <RouterLink to="/accounts" class="text-sm text-blue-600 hover:underline">&larr; voltar às contas</RouterLink>
+    <RouterLink to="/accounts" class="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-indigo-600">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+      </svg>
+      Contas
+    </RouterLink>
 
-    <div v-if="loading" class="mt-4 text-sm text-gray-500">Carregando...</div>
-
-    <div v-else-if="!account" class="mt-4 text-sm text-gray-500">Conta não encontrada.</div>
+    <LoadingState v-if="loading" />
+    <EmptyState v-else-if="!account" message="Conta não encontrada." />
 
     <div v-else class="mt-4">
-      <h1 class="text-2xl font-semibold text-gray-800">
-        {{ account.availableBalance.toFixed(2) }} {{ account.currency }} disponível
-      </h1>
-      <p class="mt-1 font-mono text-xs text-gray-400">{{ account.id }}</p>
+      <div class="rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-white shadow-lg shadow-slate-300/50 sm:p-8">
+        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Disponível</p>
+        <h1 class="mt-1 text-3xl font-bold">
+          {{ account.availableBalance.toFixed(2) }} <span class="text-lg font-medium text-slate-300">{{ account.currency }}</span>
+        </h1>
+        <p class="mt-2 font-mono text-xs text-slate-400">{{ account.id }}</p>
+      </div>
 
-      <div class="mt-6 grid grid-cols-1 gap-4 rounded-lg border border-gray-200 bg-white p-5 sm:grid-cols-3">
+      <div class="mt-6 grid grid-cols-1 gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:grid-cols-3">
         <div v-if="auth.isAdmin">
-          <p class="text-xs font-medium text-gray-500">Customer ID</p>
-          <p class="font-mono text-sm text-gray-800">{{ account.customerId }}</p>
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Customer ID</p>
+          <p class="mt-1 font-mono text-sm text-slate-800">{{ account.customerId }}</p>
         </div>
         <div>
-          <p class="text-xs font-medium text-gray-500">Saldo</p>
-          <p class="text-sm text-gray-800">{{ account.balance.toFixed(2) }} {{ account.currency }}</p>
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Saldo</p>
+          <p class="mt-1 text-sm text-slate-800">{{ account.balance.toFixed(2) }} {{ account.currency }}</p>
         </div>
         <div>
-          <p class="text-xs font-medium text-gray-500">Reservado</p>
-          <p class="text-sm text-gray-800">{{ account.reservedAmount.toFixed(2) }} {{ account.currency }}</p>
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Reservado</p>
+          <p class="mt-1 text-sm text-slate-800">{{ account.reservedAmount.toFixed(2) }} {{ account.currency }}</p>
         </div>
         <div>
-          <p class="text-xs font-medium text-gray-500">Criada em</p>
-          <p class="text-sm text-gray-800">{{ new Date(account.createdAt).toLocaleString() }}</p>
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Criada em</p>
+          <p class="mt-1 text-sm text-slate-800">{{ new Date(account.createdAt).toLocaleString() }}</p>
         </div>
       </div>
 
       <div class="mt-8">
-        <h2 class="mb-3 font-medium text-gray-700">Pagamentos desta conta</h2>
-        <div v-if="!accountPayments.length" class="text-sm text-gray-500">Nenhum pagamento encontrado.</div>
-        <div v-else class="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <h2 class="mb-3 text-sm font-semibold text-slate-700">Pagamentos desta conta</h2>
+        <EmptyState v-if="!accountPayments.length" message="Nenhum pagamento encontrado." />
+        <div v-else class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-left text-gray-500">
+            <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
               <tr>
-                <th class="px-4 py-2 font-medium">Valor</th>
-                <th class="px-4 py-2 font-medium">Status</th>
-                <th class="px-4 py-2 font-medium">Atualizado em</th>
+                <th class="px-4 py-3">Valor</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Atualizado em</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-slate-100">
               <tr
                 v-for="p in accountPayments"
                 :key="p.id"
-                class="cursor-pointer border-t border-gray-100 hover:bg-gray-50"
+                class="cursor-pointer transition hover:bg-slate-50"
                 @click="$router.push(`/payments/${p.id}`)"
               >
-                <td class="px-4 py-2">{{ p.amount.toFixed(2) }} {{ p.currency }}</td>
-                <td class="px-4 py-2"><StatusBadge :status="p.status" /></td>
-                <td class="px-4 py-2 text-gray-500">{{ new Date(p.updatedAt).toLocaleString() }}</td>
+                <td class="px-4 py-3 font-medium text-slate-800">{{ p.amount.toFixed(2) }} {{ p.currency }}</td>
+                <td class="px-4 py-3"><StatusBadge :status="p.status" /></td>
+                <td class="px-4 py-3 text-slate-500">{{ new Date(p.updatedAt).toLocaleString() }}</td>
               </tr>
             </tbody>
           </table>

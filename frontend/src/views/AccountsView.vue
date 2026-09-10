@@ -4,6 +4,8 @@ import { listAccounts, createAccount } from '@/api/accounts'
 import { useAuthStore } from '@/stores/auth'
 import { HttpError } from '@/api/client'
 import type { Account } from '@/types'
+import LoadingState from '@/components/LoadingState.vue'
+import EmptyState from '@/components/EmptyState.vue'
 
 const auth = useAuthStore()
 const accounts = ref<Account[]>([])
@@ -40,66 +42,82 @@ async function handleCreate() {
     submitting.value = false
   }
 }
+
+const inputClass =
+  'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/15'
+const labelClass = 'mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500'
 </script>
 
 <template>
   <div>
-    <h1 class="text-2xl font-semibold text-gray-800">Contas</h1>
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900">Contas</h1>
+        <p class="mt-1 text-sm text-slate-500">Gerencie as contas e acompanhe os saldos.</p>
+      </div>
+    </div>
 
-    <form class="mt-6 rounded-lg border border-gray-200 bg-white p-5" @submit.prevent="handleCreate">
-      <h2 class="mb-4 font-medium text-gray-700">Nova conta</h2>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <form class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" @submit.prevent="handleCreate">
+      <div class="flex items-center gap-2">
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+        </span>
+        <h2 class="font-semibold text-slate-800">Nova conta</h2>
+      </div>
+      <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div v-if="auth.isAdmin">
-          <label class="block text-sm font-medium text-gray-700">Customer ID</label>
-          <input v-model="customerId" required class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+          <label :class="labelClass">Customer ID</label>
+          <input v-model="customerId" required :class="inputClass" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Saldo inicial</label>
-          <input v-model.number="initialBalance" type="number" step="0.01" min="0" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+          <label :class="labelClass">Saldo inicial</label>
+          <input v-model.number="initialBalance" type="number" step="0.01" min="0" :class="inputClass" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Moeda</label>
-          <input v-model="currency" required class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+          <label :class="labelClass">Moeda</label>
+          <input v-model="currency" required :class="inputClass" />
         </div>
       </div>
-      <p v-if="error" class="mt-3 text-sm text-red-600">{{ error }}</p>
+      <p v-if="error" class="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{{ error }}</p>
       <button
         type="submit"
         :disabled="submitting"
-        class="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        class="mt-4 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-indigo-500/30 transition hover:brightness-110 disabled:opacity-60"
       >
         {{ submitting ? 'Criando...' : 'Criar conta' }}
       </button>
     </form>
 
     <div class="mt-8">
-      <div v-if="loading" class="text-sm text-gray-500">Carregando...</div>
-      <div v-else-if="!accounts.length" class="text-sm text-gray-500">Nenhuma conta encontrada.</div>
-      <div v-else class="overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <LoadingState v-if="loading" />
+      <EmptyState v-else-if="!accounts.length" message="Nenhuma conta encontrada." />
+      <div v-else class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table class="w-full text-sm">
-          <thead class="bg-gray-50 text-left text-gray-500">
+          <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
-              <th class="px-4 py-2 font-medium">ID</th>
-              <th v-if="auth.isAdmin" class="px-4 py-2 font-medium">Customer</th>
-              <th class="px-4 py-2 font-medium">Saldo</th>
-              <th class="px-4 py-2 font-medium">Reservado</th>
-              <th class="px-4 py-2 font-medium">Disponível</th>
-              <th class="px-4 py-2 font-medium">Moeda</th>
+              <th class="px-4 py-3">ID</th>
+              <th v-if="auth.isAdmin" class="px-4 py-3">Customer</th>
+              <th class="px-4 py-3">Saldo</th>
+              <th class="px-4 py-3">Reservado</th>
+              <th class="px-4 py-3">Disponível</th>
+              <th class="px-4 py-3">Moeda</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-slate-100">
             <tr
               v-for="a in accounts"
               :key="a.id"
-              class="cursor-pointer border-t border-gray-100 hover:bg-gray-50"
+              class="cursor-pointer transition hover:bg-slate-50"
               @click="$router.push(`/accounts/${a.id}`)"
             >
-              <td class="px-4 py-2 font-mono text-xs text-blue-600 hover:underline">{{ a.id }}</td>
-              <td v-if="auth.isAdmin" class="px-4 py-2 font-mono text-xs text-gray-500">{{ a.customerId }}</td>
-              <td class="px-4 py-2">{{ a.balance.toFixed(2) }}</td>
-              <td class="px-4 py-2">{{ a.reservedAmount.toFixed(2) }}</td>
-              <td class="px-4 py-2 font-medium">{{ a.availableBalance.toFixed(2) }}</td>
-              <td class="px-4 py-2">{{ a.currency }}</td>
+              <td class="px-4 py-3 font-mono text-xs text-indigo-600">{{ a.id }}</td>
+              <td v-if="auth.isAdmin" class="px-4 py-3 font-mono text-xs text-slate-500">{{ a.customerId }}</td>
+              <td class="px-4 py-3 text-slate-600">{{ a.balance.toFixed(2) }}</td>
+              <td class="px-4 py-3 text-slate-600">{{ a.reservedAmount.toFixed(2) }}</td>
+              <td class="px-4 py-3 font-semibold text-slate-900">{{ a.availableBalance.toFixed(2) }}</td>
+              <td class="px-4 py-3 text-slate-500">{{ a.currency }}</td>
             </tr>
           </tbody>
         </table>

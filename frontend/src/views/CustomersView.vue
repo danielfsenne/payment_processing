@@ -2,6 +2,8 @@
 import { onMounted, ref } from 'vue'
 import { listCustomers } from '@/api/customers'
 import type { Customer } from '@/types'
+import LoadingState from '@/components/LoadingState.vue'
+import EmptyState from '@/components/EmptyState.vue'
 
 const customers = ref<Customer[]>([])
 const loading = ref(true)
@@ -14,41 +16,42 @@ onMounted(async () => {
 
 <template>
   <div>
-    <h1 class="text-2xl font-semibold text-gray-800">Clientes</h1>
+    <h1 class="text-2xl font-bold text-slate-900">Clientes</h1>
+    <p class="mt-1 text-sm text-slate-500">Todos os clientes cadastrados na plataforma.</p>
 
     <div class="mt-6">
-      <div v-if="loading" class="text-sm text-gray-500">Carregando...</div>
-      <div v-else-if="!customers.length" class="text-sm text-gray-500">Nenhum cliente encontrado.</div>
-      <div v-else class="overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <LoadingState v-if="loading" />
+      <EmptyState v-else-if="!customers.length" message="Nenhum cliente encontrado." />
+      <div v-else class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table class="w-full text-sm">
-          <thead class="bg-gray-50 text-left text-gray-500">
+          <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
-              <th class="px-4 py-2 font-medium">Nome</th>
-              <th class="px-4 py-2 font-medium">E-mail</th>
-              <th class="px-4 py-2 font-medium">Documento</th>
-              <th class="px-4 py-2 font-medium">Perfil</th>
-              <th class="px-4 py-2 font-medium">Criado em</th>
+              <th class="px-4 py-3">Nome</th>
+              <th class="px-4 py-3">E-mail</th>
+              <th class="px-4 py-3">Documento</th>
+              <th class="px-4 py-3">Perfil</th>
+              <th class="px-4 py-3">Criado em</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-slate-100">
             <tr
               v-for="c in customers"
               :key="c.id"
-              class="cursor-pointer border-t border-gray-100 hover:bg-gray-50"
+              class="cursor-pointer transition hover:bg-slate-50"
               @click="$router.push(`/customers/${c.id}`)"
             >
-              <td class="px-4 py-2 text-blue-600 hover:underline">{{ c.name }}</td>
-              <td class="px-4 py-2">{{ c.email }}</td>
-              <td class="px-4 py-2">{{ c.document }}</td>
-              <td class="px-4 py-2">
+              <td class="px-4 py-3 font-medium text-indigo-600">{{ c.name }}</td>
+              <td class="px-4 py-3 text-slate-600">{{ c.email }}</td>
+              <td class="px-4 py-3 text-slate-600">{{ c.document }}</td>
+              <td class="px-4 py-3">
                 <span
-                  class="rounded-full px-2 py-0.5 text-xs font-medium"
-                  :class="c.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'"
+                  class="rounded-full px-2.5 py-1 text-xs font-semibold"
+                  :class="c.role === 'ADMIN' ? 'bg-violet-100 text-violet-700' : 'bg-indigo-100 text-indigo-700'"
                 >
-                  {{ c.role }}
+                  {{ c.role === 'ADMIN' ? 'Admin' : 'Cliente' }}
                 </span>
               </td>
-              <td class="px-4 py-2 text-gray-500">{{ new Date(c.createdAt).toLocaleString() }}</td>
+              <td class="px-4 py-3 text-slate-500">{{ new Date(c.createdAt).toLocaleString() }}</td>
             </tr>
           </tbody>
         </table>
