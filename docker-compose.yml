@@ -27,9 +27,12 @@ services:
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
+    volumes:
+      - ./infra/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
     ports:
       - "5672:5672"
       - "15672:15672"
+      - "15692:15692"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 5s
@@ -40,6 +43,7 @@ services:
     image: prom/prometheus:latest
     volumes:
       - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infra/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
     ports:
       - "9090:9090"
 
@@ -174,11 +178,11 @@ services:
       - "8080:8080"
     depends_on:
       payment-service:
-        condition: service_started
+        condition: service_healthy
       account-service:
-        condition: service_started
+        condition: service_healthy
       customer-service:
-        condition: service_started
+        condition: service_healthy
       redis:
         condition: service_healthy
 
@@ -187,7 +191,8 @@ services:
     ports:
       - "5173:8080"
     depends_on:
-      - api-gateway
+      api-gateway:
+        condition: service_healthy
 
 volumes:
   postgres_data:

@@ -1,0 +1,60 @@
+# http_server_requests_seconds_* only has series for services with REST controllers
+# (account-service, customer-service, payment-service) - api-gateway (routes bypass the
+# WebFlux dispatcher) and the two RabbitMQ workers don't emit it, so HighHttpErrorRate/
+# HighAverageLatency are simply inert (no series to alert on) for those jobs; ServiceDown
+# still covers them via the `up` metric.
+groups:
+  - name: payment-processing
+    rules:
+      - alert: ServiceDown
+        expr: up{job=~"api-gateway|payment-service|account-service|customer-service|payment-worker|notification-worker"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} esta fora do ar"
+          description: "O target {{ $labels.instance }} do job {{ $labels.job }} nao responde ha mais de 1 minuto."
+
+      - alert: HighHttpErrorRate
+        expr: |
+          sum by (job) (rate(http_server_requests_seconds_count{status=~"5.."}[5m]))
+          /
+          sum by (job) (rate(http_server_requests_seconds_count[5m]))
+          > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Taxa de erro HTTP 5xx alta em {{ $labels.job }}"
+          description: "Mais de 5% das respostas de {{ $labels.job }} sao 5xx nos ultimos 5 minutos."
+
+      - alert: HighAverageLatency
+        expr: |
+          sum by (job) (rate(http_server_requests_seconds_sum[5m]))
+          /
+          sum by (job) (rate(http_server_requests_seconds_count[5m]))
+          > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Latencia media alta em {{ $labels.job }}"
+          description: "Tempo medio de resposta de {{ $labels.job }} passou de 1s nos ultimos 5 minutos."
+
+      - alert: CircuitBreakerOpen
+        expr: resilience4j_circuitbreaker_state{state="open"} == 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Circuit breaker {{ $labels.name }} aberto em {{ $labels.job }}"
+          description: "O circuit breaker {{ $labels.name }} esta aberto ha mais de 1 minuto, chamadas estao caindo no fallback."
+
+      - alert: DeadLetterQueueHasMessages
+        expr: sum by (queue) (rabbitmq_queue_messages_ready{queue=~".*\\.dlq"}) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Mensagens acumulando na DLQ {{ $labels.queue }}"
+          description: "A fila {{ $labels.queue }} tem mensagens paradas ha mais de 1 minuto - indica falha recorrente no consumidor apos esgotar as retentativas."
