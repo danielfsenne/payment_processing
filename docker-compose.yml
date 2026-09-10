@@ -169,12 +169,18 @@ services:
       ACCOUNT_SERVICE_URL: http://account-service:8082
       CUSTOMER_SERVICE_URL: http://customer-service:8083
       OTEL_EXPORTER_ENDPOINT: http://otel-collector:4318/v1/traces
+      REDIS_HOST: redis
     ports:
       - "8080:8080"
     depends_on:
-      - payment-service
-      - account-service
-      - customer-service
+      payment-service:
+        condition: service_started
+      account-service:
+        condition: service_started
+      customer-service:
+        condition: service_started
+      redis:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
