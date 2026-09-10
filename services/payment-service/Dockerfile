@@ -9,9 +9,12 @@ RUN ./mvnw -B -q package -DskipTests
 
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 RUN addgroup --system app && adduser --system --ingroup app --no-create-home app
 COPY --from=build /app/target/*.jar app.jar
 RUN chown app:app app.jar
 USER app
 EXPOSE 8081
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+    CMD curl -f http://localhost:8081/actuator/health || exit 1
 ENTRYPOINT ["java", "-jar", "app.jar"]
