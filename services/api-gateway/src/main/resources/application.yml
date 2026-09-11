@@ -12,6 +12,9 @@ spring:
     gateway:
       server:
         webflux:
+          httpclient:
+            connect-timeout: 5000
+            response-timeout: 5s
           default-filters:
             - name: RequestRateLimiter
               args:
@@ -26,33 +29,52 @@ spring:
                 - Path=/api/payments/**
               filters:
                 - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    name: paymentService
+                    fallbackUri: forward:/fallback/payment-service
             - id: account-service
               uri: ${ACCOUNT_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/api/accounts/**
               filters:
                 - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    name: accountService
+                    fallbackUri: forward:/fallback/account-service
             - id: customer-service
               uri: ${CUSTOMER_SERVICE_URL:http://localhost:8083}
               predicates:
                 - Path=/api/customers/**
               filters:
                 - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    name: customerService
+                    fallbackUri: forward:/fallback/customer-service
             - id: customer-service-auth
               uri: ${CUSTOMER_SERVICE_URL:http://localhost:8083}
               predicates:
                 - Path=/api/auth/**
               filters:
                 - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    name: customerServiceAuth
+                    fallbackUri: forward:/fallback/customer-service
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus,gateway
+        include: health,info,prometheus,gateway,circuitbreakers,circuitbreakerevents
   endpoint:
     health:
       show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
   tracing:
     sampling:
       probability: 1.0
@@ -61,3 +83,18 @@ management:
       export:
         otlp:
           endpoint: ${OTEL_EXPORTER_ENDPOINT:http://localhost:4318/v1/traces}
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
