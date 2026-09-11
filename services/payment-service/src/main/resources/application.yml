@@ -60,6 +60,10 @@ security:
 outbox:
   max-attempts: ${OUTBOX_MAX_ATTEMPTS:10}
 
+reconciliation:
+  stuck-after: ${RECONCILIATION_STUCK_AFTER:PT2M}
+  interval: ${RECONCILIATION_INTERVAL:PT1M}
+
 account-service:
   base-url: ${ACCOUNT_SERVICE_URL:http://localhost:8082}
 
