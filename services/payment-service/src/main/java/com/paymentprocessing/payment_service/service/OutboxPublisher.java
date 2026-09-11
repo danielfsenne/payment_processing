@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,10 @@ import java.util.List;
  * it describes, so if the broker is unreachable this loop simply leaves rows PENDING
  * and retries them on the next tick - no event creation is ever lost, it's just
  * delayed until the broker is back.
+ *
+ * A row that keeps failing (bad payload, permanently misconfigured routing key, etc.)
+ * is retried up to maxAttempts times and then moved to FAILED so it stops being
+ * picked up here - it needs manual/operator intervention instead of spinning forever.
  */
 @Component
 @RequiredArgsConstructor
@@ -29,6 +34,9 @@ public class OutboxPublisher {
 
     private final OutboxEventRepository outboxEventRepository;
     private final RabbitTemplate rabbitTemplate;
+
+    @Value("${outbox.max-attempts:10}")
+    private int maxAttempts;
 
     @Scheduled(fixedDelay = 2000)
     public void publishPending() {
@@ -48,8 +56,15 @@ public class OutboxPublisher {
                     event.getId(), event.getRoutingKey(), event.getAttempts() + 1);
         } catch (AmqpException ex) {
             event.setAttempts(event.getAttempts() + 1);
-            log.warn("Failed to publish outbox event {} ({}), attempt {}: {}",
-                    event.getId(), event.getRoutingKey(), event.getAttempts(), ex.getMessage());
+            event.setLastError(ex.getMessage());
+            if (event.getAttempts() >= maxAttempts) {
+                event.setStatus(OutboxStatus.FAILED);
+                log.error("Giving up on outbox event {} ({}) after {} attempts: {}",
+                        event.getId(), event.getRoutingKey(), event.getAttempts(), ex.getMessage());
+            } else {
+                log.warn("Failed to publish outbox event {} ({}), attempt {}: {}",
+                        event.getId(), event.getRoutingKey(), event.getAttempts(), ex.getMessage());
+            }
         }
         outboxEventRepository.save(event);
     }

@@ -57,6 +57,9 @@ security:
   jwt:
     secret: ${JWT_SECRET:dev-only-shared-secret-change-me-in-prod-32bytes}
 
+outbox:
+  max-attempts: ${OUTBOX_MAX_ATTEMPTS:10}
+
 account-service:
   base-url: ${ACCOUNT_SERVICE_URL:http://localhost:8082}
 

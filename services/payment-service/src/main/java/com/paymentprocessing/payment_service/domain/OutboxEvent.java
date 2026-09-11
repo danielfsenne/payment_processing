@@ -61,6 +61,9 @@ public class OutboxEvent {
 
     private Instant publishedAt;
 
+    @Column(columnDefinition = "TEXT")
+    private String lastError;
+
     @PrePersist
     void onCreate() {
         if (id == null) {
