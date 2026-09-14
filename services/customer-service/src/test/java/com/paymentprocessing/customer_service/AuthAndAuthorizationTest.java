@@ -99,6 +99,63 @@ class AuthAndAuthorizationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void refreshTokenIssuesAWorkingAccessTokenAndRotatesItself() throws Exception {
+        String id = register("Erin", "erin@example.com", "444", "password123");
+        String loginResponse = loginResponse("erin@example.com", "password123");
+        String refreshToken = JsonPath.read(loginResponse, "$.refreshToken");
+
+        String refreshResponse = mockMvc.perform(post("/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"%s\"}".formatted(refreshToken)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String newAccessToken = JsonPath.read(refreshResponse, "$.accessToken");
+        String newRefreshToken = JsonPath.read(refreshResponse, "$.refreshToken");
+
+        mockMvc.perform(get("/customers/{id}", id).header("Authorization", "Bearer " + newAccessToken))
+                .andExpect(status().isOk());
+
+        // Rotation: the refresh token that was just spent no longer works, whether it's
+        // an honest retry or an attacker replaying an intercepted token.
+        mockMvc.perform(post("/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"%s\"}".formatted(refreshToken)))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"%s\"}".formatted(newRefreshToken)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void refreshRejectsAnUnknownToken() throws Exception {
+        mockMvc.perform(post("/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"not-a-real-token\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void logoutAlsoRevokesTheSuppliedRefreshToken() throws Exception {
+        register("Frank", "frank@example.com", "555", "password123");
+        String loginResponse = loginResponse("frank@example.com", "password123");
+        String accessToken = JsonPath.read(loginResponse, "$.accessToken");
+        String refreshToken = JsonPath.read(loginResponse, "$.refreshToken");
+
+        mockMvc.perform(post("/auth/logout")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"%s\"}".formatted(refreshToken)))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"%s\"}".formatted(refreshToken)))
+                .andExpect(status().isUnauthorized());
+    }
+
     private String register(String name, String email, String document, String password) throws Exception {
         String requestBody = """
                 {"name":"%s","email":"%s","document":"%s","password":"%s"}
@@ -112,14 +169,17 @@ class AuthAndAuthorizationTest {
     }
 
     private String login(String email, String password) throws Exception {
+        return JsonPath.read(loginResponse(email, password), "$.accessToken");
+    }
+
+    private String loginResponse(String email, String password) throws Exception {
         String requestBody = """
                 {"email":"%s","password":"%s"}
                 """.formatted(email, password);
-        String response = mockMvc.perform(post("/auth/login")
+        return mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        return JsonPath.read(response, "$.accessToken");
     }
 }
