@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import type { JwtPayload, Role } from '@/types'
 
 const STORAGE_KEY = 'payment-processing.token'
+const REFRESH_STORAGE_KEY = 'payment-processing.refreshToken'
 
 function decodeJwt(token: string): JwtPayload {
   const [, payload] = token.split('.')
@@ -12,6 +13,7 @@ function decodeJwt(token: string): JwtPayload {
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem(STORAGE_KEY))
+  const refreshToken = ref<string | null>(localStorage.getItem(REFRESH_STORAGE_KEY))
   const payload = ref<JwtPayload | null>(token.value ? decodeJwt(token.value) : null)
 
   const isAuthenticated = computed(() => !!token.value && !isExpired.value)
@@ -30,11 +32,35 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem(STORAGE_KEY, newToken)
   }
 
-  function logout() {
-    token.value = null
-    payload.value = null
-    localStorage.removeItem(STORAGE_KEY)
+  function setRefreshToken(newRefreshToken: string) {
+    refreshToken.value = newRefreshToken
+    localStorage.setItem(REFRESH_STORAGE_KEY, newRefreshToken)
   }
 
-  return { token, isAuthenticated, customerId, email, roles, isAdmin, setToken, logout }
+  function setSession(newToken: string, newRefreshToken: string) {
+    setToken(newToken)
+    setRefreshToken(newRefreshToken)
+  }
+
+  function logout() {
+    token.value = null
+    refreshToken.value = null
+    payload.value = null
+    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(REFRESH_STORAGE_KEY)
+  }
+
+  return {
+    token,
+    refreshToken,
+    isAuthenticated,
+    customerId,
+    email,
+    roles,
+    isAdmin,
+    setToken,
+    setRefreshToken,
+    setSession,
+    logout,
+  }
 })

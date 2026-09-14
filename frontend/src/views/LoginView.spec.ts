@@ -43,7 +43,12 @@ describe('LoginView', () => {
 
   it('logs in and redirects home on success', async () => {
     const token = fakeJwt({ sub: 'c1', email: 'alice@example.com', roles: ['CUSTOMER'], exp: Math.floor(Date.now() / 1000) + 3600 })
-    vi.mocked(login).mockResolvedValue({ accessToken: token, tokenType: 'Bearer', expiresInSeconds: 3600 })
+    vi.mocked(login).mockResolvedValue({
+      accessToken: token,
+      tokenType: 'Bearer',
+      expiresInSeconds: 3600,
+      refreshToken: 'refresh-token-1',
+    })
 
     const { wrapper, router } = await mountLoginView()
     await wrapper.find('input[type="email"]').setValue('alice@example.com')
@@ -53,6 +58,7 @@ describe('LoginView', () => {
 
     expect(login).toHaveBeenCalledWith({ email: 'alice@example.com', password: 'password123' })
     expect(useAuthStore().isAuthenticated).toBe(true)
+    expect(useAuthStore().refreshToken).toBe('refresh-token-1')
     expect(router.currentRoute.value.path).toBe('/')
   })
 

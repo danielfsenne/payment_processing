@@ -80,4 +80,55 @@ describe('api client', () => {
       expect(err).toBeInstanceOf(HttpError)
     }
   })
+
+  it('refreshes the access token on a 401 and transparently retries the request', async () => {
+    const auth = useAuthStore()
+    auth.setSession(fakeJwt({ sub: 'x', email: 'x@example.com', roles: [], exp: Math.floor(Date.now() / 1000) + 3600 }), 'refresh-1')
+    const newAccessToken = fakeJwt({ sub: 'x', email: 'x@example.com', roles: [], exp: Math.floor(Date.now() / 1000) + 7200 })
+
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+      if (url === '/api/accounts') {
+        if (auth.token !== newAccessToken) {
+          return jsonResponse(401, { status: 401, error: 'Unauthorized', message: 'expired' })
+        }
+        return jsonResponse(200, { ok: true })
+      }
+      if (url === '/api/auth/refresh') {
+        return jsonResponse(200, { accessToken: newAccessToken, tokenType: 'Bearer', expiresInSeconds: 3600, refreshToken: 'refresh-2' })
+      }
+      throw new Error(`unexpected fetch to ${url}`)
+    })
+
+    const result = await api.get('/accounts')
+
+    expect(result).toEqual({ ok: true })
+    expect(auth.token).toBe(newAccessToken)
+    expect(auth.refreshToken).toBe('refresh-2')
+    expect(fetchMock).toHaveBeenCalledTimes(3) // initial 401, refresh call, retried request
+  })
+
+  it('logs out and surfaces the 401 when the refresh token is also invalid', async () => {
+    const auth = useAuthStore()
+    auth.setSession(fakeJwt({ sub: 'x', email: 'x@example.com', roles: [], exp: Math.floor(Date.now() / 1000) + 3600 }), 'refresh-1')
+
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+      if (url === '/api/auth/refresh') {
+        return jsonResponse(401, { status: 401, error: 'Unauthorized', message: 'invalid refresh token' })
+      }
+      return jsonResponse(401, { status: 401, error: 'Unauthorized', message: 'expired' })
+    })
+
+    await expect(api.get('/accounts')).rejects.toMatchObject({ status: 401 })
+    expect(auth.isAuthenticated).toBe(false)
+    expect(auth.refreshToken).toBeNull()
+  })
+
+  it('does not attempt a refresh for the login endpoint itself', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      jsonResponse(401, { status: 401, error: 'Unauthorized', message: 'Invalid email or password' }),
+    )
+
+    await expect(api.post('/auth/login', { email: 'x', password: 'y' })).rejects.toMatchObject({ status: 401 })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
 })

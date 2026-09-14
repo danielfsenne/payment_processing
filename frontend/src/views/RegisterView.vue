@@ -23,7 +23,7 @@ async function handleSubmit() {
   try {
     await registerCustomer({ name: name.value, email: email.value, document: document.value, password: password.value })
     const response = await login({ email: email.value, password: password.value })
-    auth.setToken(response.accessToken)
+    auth.setSession(response.accessToken, response.refreshToken)
     router.push('/')
   } catch (err) {
     error.value = err instanceof HttpError ? err.message : 'Falha ao conectar com o servidor'

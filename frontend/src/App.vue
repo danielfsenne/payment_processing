@@ -1,12 +1,21 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRouter } from 'vue-router'
+import { logout as logoutRequest } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
 import BrandMark from '@/components/BrandMark.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
 
-function handleLogout() {
+async function handleLogout() {
+  // Best-effort: the server-side revocation (access token denylist + refresh token
+  // deletion) matters for security, but the user must still be able to leave the
+  // session locally even if the request fails (offline, service down, etc.).
+  try {
+    await logoutRequest(auth.refreshToken)
+  } catch {
+    // ignored - local logout below still proceeds
+  }
   auth.logout()
   router.push('/login')
 }

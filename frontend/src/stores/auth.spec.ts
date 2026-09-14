@@ -9,6 +9,7 @@ function fakeJwt(payload: Record<string, unknown>): string {
 }
 
 const STORAGE_KEY = 'payment-processing.token'
+const REFRESH_STORAGE_KEY = 'payment-processing.refreshToken'
 
 describe('auth store', () => {
   beforeEach(() => {
@@ -69,17 +70,34 @@ describe('auth store', () => {
     expect(auth.isAuthenticated).toBe(false)
   })
 
-  it('clears everything on logout', () => {
+  it('clears everything on logout, including the refresh token', () => {
     const auth = useAuthStore()
-    auth.setToken(
+    auth.setSession(
       fakeJwt({ sub: 'x', email: 'x@example.com', roles: [], exp: Math.floor(Date.now() / 1000) + 3600 }),
+      'refresh-token-1',
     )
 
     auth.logout()
 
     expect(auth.isAuthenticated).toBe(false)
     expect(auth.token).toBeNull()
+    expect(auth.refreshToken).toBeNull()
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(REFRESH_STORAGE_KEY)).toBeNull()
+  })
+
+  it('persists the refresh token set via setSession and hydrates it on creation', () => {
+    const auth = useAuthStore()
+    auth.setSession(
+      fakeJwt({ sub: 'x', email: 'x@example.com', roles: [], exp: Math.floor(Date.now() / 1000) + 3600 }),
+      'refresh-token-1',
+    )
+
+    expect(auth.refreshToken).toBe('refresh-token-1')
+    expect(localStorage.getItem(REFRESH_STORAGE_KEY)).toBe('refresh-token-1')
+
+    setActivePinia(createPinia())
+    expect(useAuthStore().refreshToken).toBe('refresh-token-1')
   })
 
   it('hydrates from a token already in localStorage when the store is created', () => {
