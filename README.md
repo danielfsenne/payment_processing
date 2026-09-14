@@ -44,6 +44,8 @@ Cada serviço tem seu próprio banco Postgres (schemas/databases separados), e s
 | `notification-worker` | 8085 | Repassa eventos de pagamento a clientes conectados via WebSocket/STOMP |
 | `frontend` | 5173 (dev) | SPA Vue 3 para clientes e admins |
 
+`common-security` é um módulo Maven à parte (não um serviço executável): concentra o que toda validação de JWT tem em comum entre `account-service`, `customer-service`, `payment-service` e `notification-worker` — `JwtDecoder`, o mapeamento da claim `roles`, a checagem de token revogado e o guard de segredos de produção — como uma auto-configuration do Spring Boot, para não duplicar essas classes serviço a serviço. Cada Dockerfile que depende dele builda a partir da raiz do repositório e instala esse módulo no repositório Maven local da imagem antes de compilar o serviço.
+
 ### Infraestrutura
 Postgres, Redis, RabbitMQ, Prometheus, Grafana, OpenTelemetry Collector e Tempo — tudo já provisionado no `docker-compose.yml`.
 

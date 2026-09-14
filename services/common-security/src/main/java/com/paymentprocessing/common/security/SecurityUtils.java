@@ -1,4 +1,4 @@
-package com.paymentprocessing.customer_service.security;
+package com.paymentprocessing.common.security;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -21,8 +21,8 @@ public final class SecurityUtils {
         return UUID.fromString(authentication.getName());
     }
 
-    public static void requireSelfOrAdmin(Authentication authentication, UUID targetCustomerId) {
-        if (!isAdmin(authentication) && !currentCustomerId(authentication).equals(targetCustomerId)) {
+    public static void requireOwnerOrAdmin(Authentication authentication, UUID resourceCustomerId) {
+        if (!isAdmin(authentication) && !currentCustomerId(authentication).equals(resourceCustomerId)) {
             throw new AccessDeniedException("Not authorized to access this resource");
         }
     }

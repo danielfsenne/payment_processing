@@ -14,6 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         service:
+          - common-security
           - customer-service
           - account-service
           - payment-service
@@ -39,6 +40,17 @@ jobs:
           java-version: "17"
           cache: maven
           cache-dependency-path: services/${{ matrix.service }}/pom.xml
+
+      # account-service, customer-service, payment-service and notification-worker all
+      # depend on common-security (see their pom.xml); it needs to be in the local Maven
+      # repo before their own build can resolve it. Harmless no-op for services that
+      # don't depend on it.
+      - name: Install shared security module
+        if: matrix.service != 'common-security'
+        working-directory: services/common-security
+        run: |
+          chmod +x ./mvnw
+          ./mvnw -B -q install -DskipTests
 
       - name: Build and test
         working-directory: services/${{ matrix.service }}

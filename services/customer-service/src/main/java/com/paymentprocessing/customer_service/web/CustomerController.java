@@ -1,7 +1,7 @@
 package com.paymentprocessing.customer_service.web;
 
+import com.paymentprocessing.common.security.SecurityUtils;
 import com.paymentprocessing.customer_service.domain.Customer;
-import com.paymentprocessing.customer_service.security.SecurityUtils;
 import com.paymentprocessing.customer_service.service.CustomerService;
 import com.paymentprocessing.customer_service.web.dto.CreateCustomerRequest;
 import com.paymentprocessing.customer_service.web.dto.CustomerResponse;
@@ -31,7 +31,7 @@ public class CustomerController {
 
     @GetMapping("/{id}")
     public CustomerResponse getById(@PathVariable UUID id, Authentication authentication) {
-        SecurityUtils.requireSelfOrAdmin(authentication, id);
+        SecurityUtils.requireOwnerOrAdmin(authentication, id);
         return CustomerResponse.from(customerService.getById(id));
     }
 

@@ -1,8 +1,8 @@
 package com.paymentprocessing.customer_service.web;
 
+import com.paymentprocessing.common.security.RevokedTokenStore;
 import com.paymentprocessing.customer_service.domain.Customer;
 import com.paymentprocessing.customer_service.security.RefreshTokenService;
-import com.paymentprocessing.customer_service.security.RevokedTokenStore;
 import com.paymentprocessing.customer_service.security.TokenService;
 import com.paymentprocessing.customer_service.service.CustomerService;
 import com.paymentprocessing.customer_service.web.dto.LoginRequest;

@@ -1,4 +1,4 @@
-package com.paymentprocessing.customer_service.security;
+package com.paymentprocessing.common.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -12,7 +12,8 @@ import java.time.Duration;
  * that gap: logout writes the token's jti here with a TTL equal to its remaining
  * lifetime, so Redis expires the entry by itself the moment the token would have
  * expired anyway - no cleanup job needed. Every service that validates this JWT
- * (including this one) checks it via NotRevokedTokenValidator on every request.
+ * checks it via NotRevokedTokenValidator on every request; only customer-service
+ * (the issuer) ever calls revoke().
  */
 @Component
 @RequiredArgsConstructor

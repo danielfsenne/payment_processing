@@ -1,7 +1,6 @@
 package com.paymentprocessing.payment_service.web;
 
 import com.paymentprocessing.payment_service.domain.Payment;
-import com.paymentprocessing.payment_service.security.SecurityUtils;
 import com.paymentprocessing.payment_service.service.PaymentCreationResult;
 import com.paymentprocessing.payment_service.service.PaymentSagaOrchestrator;
 import com.paymentprocessing.payment_service.service.PaymentService;
@@ -10,6 +9,7 @@ import com.paymentprocessing.payment_service.web.dto.PaymentEventResponse;
 import com.paymentprocessing.payment_service.web.dto.PaymentResponse;
 import com.paymentprocessing.payment_service.web.dto.ProcessPaymentRequest;
 import com.paymentprocessing.payment_service.web.dto.TransitionRequest;
+import com.paymentprocessing.common.security.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;

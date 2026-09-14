@@ -1,4 +1,4 @@
-package com.paymentprocessing.account_service.security;
+package com.paymentprocessing.common.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.core.OAuth2Error;

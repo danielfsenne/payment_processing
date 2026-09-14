@@ -1,9 +1,9 @@
 package com.paymentprocessing.account_service.web;
 
 import com.paymentprocessing.account_service.domain.Reservation;
-import com.paymentprocessing.account_service.security.SecurityUtils;
 import com.paymentprocessing.account_service.service.AccountService;
 import com.paymentprocessing.account_service.service.ReservationService;
+import com.paymentprocessing.common.security.SecurityUtils;
 import com.paymentprocessing.account_service.web.dto.CreateReservationRequest;
 import com.paymentprocessing.account_service.web.dto.ReservationResponse;
 import jakarta.validation.Valid;

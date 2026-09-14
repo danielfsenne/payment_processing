@@ -1,8 +1,8 @@
 package com.paymentprocessing.account_service.web;
 
 import com.paymentprocessing.account_service.domain.Account;
-import com.paymentprocessing.account_service.security.SecurityUtils;
 import com.paymentprocessing.account_service.service.AccountService;
+import com.paymentprocessing.common.security.SecurityUtils;
 import com.paymentprocessing.account_service.web.dto.AccountResponse;
 import com.paymentprocessing.account_service.web.dto.CreateAccountRequest;
 import jakarta.validation.Valid;

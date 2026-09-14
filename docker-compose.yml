@@ -79,7 +79,9 @@ services:
       - "3200:3200"
 
   customer-service:
-    build: ./services/customer-service
+    build:
+      context: .
+      dockerfile: services/customer-service/Dockerfile
     environment:
       DB_HOST: postgres
       DB_NAME: customer_db
@@ -97,7 +99,9 @@ services:
         condition: service_healthy
 
   account-service:
-    build: ./services/account-service
+    build:
+      context: .
+      dockerfile: services/account-service/Dockerfile
     environment:
       DB_HOST: postgres
       DB_NAME: account_db
@@ -116,7 +120,9 @@ services:
         condition: service_healthy
 
   payment-service:
-    build: ./services/payment-service
+    build:
+      context: .
+      dockerfile: services/payment-service/Dockerfile
     environment:
       DB_HOST: postgres
       DB_NAME: payment_db
@@ -152,7 +158,9 @@ services:
         condition: service_healthy
 
   notification-worker:
-    build: ./services/notification-worker
+    build:
+      context: .
+      dockerfile: services/notification-worker/Dockerfile
     environment:
       RABBITMQ_HOST: rabbitmq
       JWT_SECRET: ${JWT_SECRET:-dev-only-shared-secret-change-me-in-prod-32bytes}

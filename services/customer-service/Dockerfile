@@ -1,10 +1,17 @@
 FROM eclipse-temurin:17-jdk-jammy AS build
 WORKDIR /app
-COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
+
+# Build context is the repo root (see docker-compose.yml) so this stage can also see
+# common-security, a sibling module this service depends on. Install it into the
+# image's local Maven repo first so the service's own build below can resolve it.
+COPY services/common-security /common-security
+RUN cd /common-security && chmod +x mvnw && ./mvnw -B -q install -DskipTests
+
+COPY services/customer-service/.mvn/ .mvn/
+COPY services/customer-service/mvnw services/customer-service/pom.xml ./
 RUN chmod +x mvnw
 RUN ./mvnw -B dependency:go-offline
-COPY src ./src
+COPY services/customer-service/src ./src
 RUN ./mvnw -B -q package -DskipTests
 
 FROM eclipse-temurin:17-jre-jammy
