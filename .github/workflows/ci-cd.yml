@@ -125,17 +125,31 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # account-service, customer-service, payment-service and notification-worker
+      # depend on the common-security module (a sibling directory under services/), so
+      # their Dockerfile needs the repo root as build context to see it - everything
+      # else keeps its own directory as context like before.
       - id: context
         run: |
-          if [ "${{ matrix.service }}" = "frontend" ]; then
-            echo "path=frontend" >> "$GITHUB_OUTPUT"
-          else
-            echo "path=services/${{ matrix.service }}" >> "$GITHUB_OUTPUT"
-          fi
+          case "${{ matrix.service }}" in
+            frontend)
+              echo "path=frontend" >> "$GITHUB_OUTPUT"
+              echo "file=frontend/Dockerfile" >> "$GITHUB_OUTPUT"
+              ;;
+            account-service|customer-service|payment-service|notification-worker)
+              echo "path=." >> "$GITHUB_OUTPUT"
+              echo "file=services/${{ matrix.service }}/Dockerfile" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "path=services/${{ matrix.service }}" >> "$GITHUB_OUTPUT"
+              echo "file=services/${{ matrix.service }}/Dockerfile" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
 
       - uses: docker/build-push-action@v5
         with:
           context: ${{ steps.context.outputs.path }}
+          file: ${{ steps.context.outputs.file }}
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/payment-processing-${{ matrix.service }}:latest
