@@ -64,6 +64,10 @@ reconciliation:
   stuck-after: ${RECONCILIATION_STUCK_AFTER:PT2M}
   interval: ${RECONCILIATION_INTERVAL:PT1M}
 
+idempotency:
+  key-ttl: ${IDEMPOTENCY_KEY_TTL:PT24H}
+  cleanup-interval: ${IDEMPOTENCY_CLEANUP_INTERVAL:PT1H}
+
 account-service:
   base-url: ${ACCOUNT_SERVICE_URL:http://localhost:8082}
 
