@@ -36,7 +36,7 @@ Cada serviço tem seu próprio banco Postgres (schemas/databases separados), e s
 
 | Serviço | Porta | Responsabilidade |
 |---|---|---|
-| `api-gateway` | 8080 | Roteamento, rate limiting (Redis), circuit breaker/timeout por rota |
+| `api-gateway` | 8080 | Roteamento, rate limiting por usuário/IP (Redis), circuit breaker/timeout por rota |
 | `customer-service` | 8083 | Cadastro de clientes, autenticação (login/refresh/logout), emissão de JWT |
 | `account-service` | 8082 | Contas e saldo, reservas de saldo (hold/confirm/release) |
 | `payment-service` | 8081 (exposta em 8091 no compose) | Orquestração da saga de pagamento, outbox, idempotência |

@@ -180,6 +180,7 @@ services:
       PAYMENT_SERVICE_URL: http://payment-service:8081
       ACCOUNT_SERVICE_URL: http://account-service:8082
       CUSTOMER_SERVICE_URL: http://customer-service:8083
+      JWT_SECRET: ${JWT_SECRET:-dev-only-shared-secret-change-me-in-prod-32bytes}
       OTEL_EXPORTER_ENDPOINT: http://otel-collector:4318/v1/traces
       REDIS_HOST: redis
     ports:
