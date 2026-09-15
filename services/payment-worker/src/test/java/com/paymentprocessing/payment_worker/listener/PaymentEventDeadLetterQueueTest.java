@@ -59,6 +59,29 @@ class PaymentEventDeadLetterQueueTest {
         assertThat(new String(dead.getBody())).isEqualTo("not-valid-json");
     }
 
+    @Test
+    void aWellFormedMessageIsConsumedAndNeverReachesTheDeadLetterQueue() {
+        String payload = """
+                {
+                  "paymentId": "8f7a9b1e-2222-4444-8888-000000000002",
+                  "customerId": "8f7a9b1e-1111-4444-8888-000000000001",
+                  "accountId": "8f7a9b1e-3333-4444-8888-000000000003",
+                  "amount": 100.00,
+                  "currency": "BRL",
+                  "eventType": "TRANSITIONED",
+                  "fromStatus": "CREATED",
+                  "toStatus": "PROCESSING",
+                  "occurredAt": "2026-01-01T00:00:00Z"
+                }
+                """;
+
+        rabbitTemplate.convertAndSend(RabbitMQConfig.PAYMENTS_EXCHANGE, "payment.transitioned", payload);
+
+        Message dead = pollDeadLetterQueue(Duration.ofSeconds(5));
+
+        assertThat(dead).as("a well-formed event should be acked on the happy path, never dead-lettered").isNull();
+    }
+
     private Message pollDeadLetterQueue(Duration timeout) {
         Instant deadline = Instant.now().plus(timeout);
         while (Instant.now().isBefore(deadline)) {
